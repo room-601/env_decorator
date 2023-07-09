@@ -4,6 +4,8 @@
   "manifest_version": 3,
   "version": "0.1",
   "permissions": ["activeTab", "scripting", "storage"],
-  "background": {},
-  "action": {}
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "background.js"
+  }
 }
