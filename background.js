@@ -1,28 +1,21 @@
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  chrome.storage.local.remove("domainList");
+  const appKeys = (await chrome.storage.local.get("appKeys"))["appKeys"];
 
-  chrome.storage.local.set({
-    domainList: {
-      list: [
-        {
-          url: "https://qiita.com/opportunities",
-          color: "red",
-          title: "本番",
-        },
-      ],
-    },
-  });
+  if (!appKeys) return;
+
+  const lists = await Promise.all(
+    appKeys.map(async (key) => {
+      const list = (await chrome.storage.local.get(key))[key];
+      console.log(list);
+      return list;
+    })
+  );
+
+  const flattenList = lists.flat();
 
   // ロードの完了を待つ
   if (changeInfo.status === "complete") {
-    const list = (await chrome.storage.local.get("domainList"))["domainList"];
-
-    const targetLists = list["list"];
-
-    // storageに対象のリストがない場合
-    if (!targetLists) return;
-
-    const isTargetSite = targetLists.some(
+    const isTargetSite = flattenList.some(
       ({ url }) => tab.url.indexOf(url) > -1
     );
 
