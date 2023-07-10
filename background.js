@@ -11,7 +11,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     })
   );
 
-  const flattenList = lists.flat();
+  if (!lists || lists.length === 0) return;
+
+  const flattenList = lists.filter((v) => v).flat();
+
+  if (!flattenList || flattenList.length === 0) return;
 
   // ロードの完了を待つ
   if (changeInfo.status === "complete") {
