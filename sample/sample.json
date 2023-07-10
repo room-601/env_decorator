@@ -1,0 +1,11 @@
+{
+  "domainList": {
+    "list": [
+      {
+        "url": "https://example.com",
+        "color": "red",
+        "title": "本番"
+      }
+    ]
+  }
+}
