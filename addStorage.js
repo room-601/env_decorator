@@ -1,4 +1,5 @@
 const button = document.getElementById("addButton");
+const deleteButton = document.getElementById("deleteButton");
 
 button.addEventListener("click", async (e) => {
   e.preventDefault();
@@ -24,4 +25,22 @@ button.addEventListener("click", async (e) => {
   }
 
   chrome.storage.local.set({ [appKey]: JSON.parse(config) });
+});
+
+deleteButton.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  const deleteAppKey = document.getElementById("deleteAppKey").value;
+
+  if (!deleteAppKey) {
+    return;
+  }
+
+  const storedAppKey = (await chrome.storage.local.get(deleteAppKey))[
+    deleteAppKey
+  ];
+
+  if (!deleteAppKey) return;
+
+  chrome.storage.local.remove(deleteAppKey);
 });
