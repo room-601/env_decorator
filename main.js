@@ -19,7 +19,7 @@ const addBar = async () => {
   const body = document.getElementsByTagName("body");
   const ele = document.createElement("div");
   ele.innerHTML = text;
-  ele.style.cssText = `width: 100%; height: 40px; position: sticky; background-color: ${color}`;
+  ele.style.cssText = `width: 100%; height: 30px; top: 0; left: 0; z-index: 1000000; opacity: 0.8; display: flex; align-items: center; justify-content: center; font-weight: bold; position: fixed; background-color: ${color};`;
   body.item(0).prepend(ele);
 };
 
