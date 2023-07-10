@@ -1,5 +1,5 @@
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  chrome.storage.local.clear();
+  chrome.storage.local.remove("domainList");
 
   chrome.storage.local.set({
     domainList: {
