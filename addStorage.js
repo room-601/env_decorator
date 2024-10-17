@@ -1,46 +1,101 @@
-const button = document.getElementById("addButton");
+const addButton = document.getElementById("addButton");
 const deleteButton = document.getElementById("deleteButton");
 
-button.addEventListener("click", async (e) => {
+/**
+ * configを登録する
+ */
+const saveConfigs = async (e) => {
   e.preventDefault();
 
-  const appKey = document.getElementById("appKey").value;
-  const config = document.getElementById("config").value;
+  const applicationId = document.getElementById("applicationId").value;
+  const url = document.getElementById("url").value;
+  const color = document.getElementById("color").value;
+  const title = document.getElementById("title").value;
 
-  // for dev
-  // chrome.storage.local.remove("appKeys");
-  // chrome.storage.local.remove("sample");
-
-  // TODO
-  if (!appKey || !config) {
-    return;
+  if (!applicationId) {
+    window.alert("アプリケーションIDが入っていません");
   }
 
-  const storedAppConfig = (await chrome.storage.local.get(appKey))[appKey];
-
-  if (!storedAppConfig) {
-    const keys = await chrome.storage.local.get("appKeys")["appKeys"];
-    const _keys = !keys ? [appKey] : [...keys, appKey];
-    chrome.storage.local.set({ appKeys: _keys });
+  if (!url) {
+    window.alert("URLが入っていません");
   }
 
-  chrome.storage.local.set({ [appKey]: JSON.parse(config) });
-});
+  if (!color) {
+    window.alert("カラーが入っていません");
+  }
 
-deleteButton.addEventListener("click", async (e) => {
+  if (!title) {
+    window.alert("タイトルが入っていません");
+  }
+
+  const applicationIds = (await chrome.storage.local.get("applicationIds"))
+    .applicationIds;
+
+  const isIdExist = applicationIds
+    ? applicationIds.some((id) => id === applicationId)
+    : false;
+
+  if (isIdExist) {
+    const storedConfig = (await chrome.storage.local.get(applicationId))[
+      applicationId
+    ];
+
+    const isUrlExist = storedConfig.some((config) => config.url === url);
+
+    if (isUrlExist) {
+      window.alert("指定したURLはすでに登録されています");
+      return;
+    }
+
+    await chrome.storage.local.set({
+      [applicationId]: [...storedConfig, { url, title, color }],
+    });
+  } else {
+    await chrome.storage.local.set({
+      [applicationId]: [{ url, title, color }],
+    });
+
+    await chrome.storage.local.set({
+      applicationIds: applicationIds
+        ? [...applicationIds, applicationId]
+        : [applicationId],
+    });
+  }
+
+  window.alert(
+    isIdExist
+      ? `更新しました:${applicationId}`
+      : `新規で登録しました:${applicationId}`
+  );
+};
+
+/**
+ * configsを削除する
+ */
+const deleteConfigs = async (e) => {
   e.preventDefault();
 
-  const deleteAppKey = document.getElementById("deleteAppKey").value;
+  const deleteAppId = document.getElementById("applicationId").value;
 
-  if (!deleteAppKey) {
-    return;
+  const applicationIds = (await chrome.storage.local.get("applicationIds"))
+    .applicationIds;
+
+  const isApplicationIdExist = applicationIds?.some((id) => id === deleteAppId);
+
+  if (!isApplicationIdExist) {
+    window.alert("指定したアプリケーションIDが存在しません");
   }
 
-  const storedAppKey = (await chrome.storage.local.get(deleteAppKey))[
-    deleteAppKey
-  ];
+  await chrome.storage.local.remove(deleteAppId);
 
-  if (!deleteAppKey) return;
+  if (applicationIds) {
+    await chrome.storage.local.set({
+      applicationIds: applicationIds.filter((id) => id !== deleteAppId),
+    });
+  }
 
-  chrome.storage.local.remove(deleteAppKey);
-});
+  window.alert("削除しました");
+};
+
+addButton.addEventListener("click", saveConfigs);
+deleteButton.addEventListener("click", deleteConfigs);
