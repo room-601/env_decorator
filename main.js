@@ -1,28 +1,33 @@
 const addBar = async () => {
   const currentUrl = window.location.href;
 
-  const appKeys = (await chrome.storage.local.get("appKeys"))["appKeys"];
+  const applicationIds = (await chrome.storage.local.get("applicationIds"))
+    .applicationIds;
 
   // 指定キーなし
-  if (!appKeys) return;
+  if (!applicationIds) {
+    return;
+  }
 
   const lists = await Promise.all(
-    appKeys.map(async (key) => {
-      const list = (await chrome.storage.local.get(key))[key];
-      console.log(list);
-      return list;
+    applicationIds.map(async (id) => {
+      return (await chrome.storage.local.get(id))[id];
     })
   );
 
   const flattenList = lists.flat();
 
   // リストなし
-  if (!flattenList) return;
+  if (!flattenList) {
+    return;
+  }
 
   const currentEnv = flattenList.find(({ url }) => currentUrl.startsWith(url));
 
   // 対象の環境がない場合
-  if (!currentEnv) return;
+  if (!currentEnv) {
+    return;
+  }
 
   const text = currentEnv.title || "sampleです";
   const color = currentEnv.color || "white";
