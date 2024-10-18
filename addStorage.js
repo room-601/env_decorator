@@ -1,46 +1,89 @@
-const button = document.getElementById("addButton");
+const addButton = document.getElementById("addButton");
 const deleteButton = document.getElementById("deleteButton");
 
-button.addEventListener("click", async (e) => {
+/**
+ * configを登録する
+ */
+const saveConfigs = async (e) => {
   e.preventDefault();
 
-  const appKey = document.getElementById("appKey").value;
-  const config = document.getElementById("config").value;
+  const url = document.getElementById("url").value;
+  const color = document.getElementById("color").value;
+  const title = document.getElementById("title").value;
 
-  // for dev
-  // chrome.storage.local.remove("appKeys");
-  // chrome.storage.local.remove("sample");
+  if (!url) {
+    window.alert("URLが入っていません");
+  }
 
-  // TODO
-  if (!appKey || !config) {
+  if (!color) {
+    window.alert("カラーが入っていません");
+  }
+
+  if (!title) {
+    window.alert("タイトルが入っていません");
+  }
+
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
+
+  const isUrlExist = urlList ? urlList.some((_url) => _url === url) : false;
+
+  await chrome.storage.local.set({ [url]: { title, color } });
+  await chrome.storage.local.set({
+    urlList: urlList ? [...urlList, url] : [url],
+  });
+
+  window.confirm(
+    `${isUrlExist ? "更新しました" : "新規で登録しました"}:${url}`
+  );
+
+  window.location.reload();
+};
+
+/**
+ * configsを削除する
+ */
+const deleteConfigs = async (e) => {
+  e.preventDefault();
+
+  const deleteUrl = document.getElementById("url").value;
+
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
+
+  const isUrlExist = urlList?.some((_url) => _url === deleteUrl);
+
+  if (!isUrlExist) {
+    window.alert("指定したURLは存在しません");
+  }
+
+  await chrome.storage.local.remove(deleteUrl);
+
+  if (urlList) {
+    await chrome.storage.local.set({
+      applicationIds: urlList.filter((_url) => _url !== deleteUrl),
+    });
+  }
+
+  window.confirm("削除しました");
+
+  window.location.reload();
+};
+
+const appendUrlList = async () => {
+  const appendTargetElement = document.getElementById("lists");
+
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
+
+  if (!urlList) {
     return;
   }
 
-  const storedAppConfig = (await chrome.storage.local.get(appKey))[appKey];
+  urlList.forEach((url) => {
+    const li = document.createElement("li");
+    li.textContent = url;
+    appendTargetElement.appendChild(li);
+  });
+};
 
-  if (!storedAppConfig) {
-    const keys = await chrome.storage.local.get("appKeys")["appKeys"];
-    const _keys = !keys ? [appKey] : [...keys, appKey];
-    chrome.storage.local.set({ appKeys: _keys });
-  }
-
-  chrome.storage.local.set({ [appKey]: JSON.parse(config) });
-});
-
-deleteButton.addEventListener("click", async (e) => {
-  e.preventDefault();
-
-  const deleteAppKey = document.getElementById("deleteAppKey").value;
-
-  if (!deleteAppKey) {
-    return;
-  }
-
-  const storedAppKey = (await chrome.storage.local.get(deleteAppKey))[
-    deleteAppKey
-  ];
-
-  if (!deleteAppKey) return;
-
-  chrome.storage.local.remove(deleteAppKey);
-});
+addButton.addEventListener("click", saveConfigs);
+deleteButton.addEventListener("click", deleteConfigs);
+window.onload = appendUrlList();

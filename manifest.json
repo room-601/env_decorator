@@ -1,14 +1,15 @@
 {
-  "name": "env_decorator",
+  "name": "env_decorator_extentions",
   "description": "show your current environment",
   "manifest_version": 3,
-  "version": "0.1",
+  "version": "0.2",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "background": {
     "service_worker": "background.js"
   },
-  "action": {
-    "default_popup": "./page/popup.html"
+  "options_ui": {
+    "page": "./page/options.html",
+    "open_in_tab": true
   }
 }

@@ -4,36 +4,42 @@
 
 ## 使い方
 
-① 識別子 + データを登録する
+① アプリケーション ID と環境ごとの config を登録する
+
+e.g.)  
+アプリケーション ID：sample
+config:
+
+- url: https://{domain}
+- color: #f8f8f8 (hex)
+- title: 本番環境
+
+② データを削除する  
+※アプリケーション ID 単位でのみの削除に対応しています
 
 e.g.)
-識別子: `sample`  
-データ：`[{"url": "https://qiita.com/question-trend","color": "red","title": "トレンド"},{"url": "https://qiita.com/official-events","color": "white","title": "イベント"}]`
-
-② データを削除する
-
-e.g.)
-識別子: `sample`
+アプリケーション ID：sample
 
 ## データ構造
 
 下記のようなデータの保持を行っています
 
 ```
-{appKeys : ["appKey1", "appKey2"]}
+{ applicationId : ["id1", "id2"] }
 
 {
-  "appKey1": [
+  "id1": [
     {
-      "url": "https://qiita.com/question-trend",
+      "url": "https://{domain}",
       "color": "red",
       "title": "本番"
     },
     {
-      "url": "https://qiita.com/official-events",
+      "url": "https://{domain}",
       "color": "white",
       "title": "dev"
     }
+    ...
   ]
 }
 ```
