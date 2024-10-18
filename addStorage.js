@@ -7,14 +7,9 @@ const deleteButton = document.getElementById("deleteButton");
 const saveConfigs = async (e) => {
   e.preventDefault();
 
-  const applicationId = document.getElementById("applicationId").value;
   const url = document.getElementById("url").value;
   const color = document.getElementById("color").value;
   const title = document.getElementById("title").value;
-
-  if (!applicationId) {
-    window.alert("アプリケーションIDが入っていません");
-  }
 
   if (!url) {
     window.alert("URLが入っていません");
@@ -28,45 +23,20 @@ const saveConfigs = async (e) => {
     window.alert("タイトルが入っていません");
   }
 
-  const applicationIds = (await chrome.storage.local.get("applicationIds"))
-    .applicationIds;
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
 
-  const isIdExist = applicationIds
-    ? applicationIds.some((id) => id === applicationId)
-    : false;
+  const isUrlExist = urlList ? urlList.some((_url) => _url === url) : false;
 
-  if (isIdExist) {
-    const storedConfig = (await chrome.storage.local.get(applicationId))[
-      applicationId
-    ];
+  await chrome.storage.local.set({ [url]: { title, color } });
+  await chrome.storage.local.set({
+    urlList: urlList ? [...urlList, url] : [url],
+  });
 
-    const isUrlExist = storedConfig.some((config) => config.url === url);
-
-    if (isUrlExist) {
-      window.alert("指定したURLはすでに登録されています");
-      return;
-    }
-
-    await chrome.storage.local.set({
-      [applicationId]: [...storedConfig, { url, title, color }],
-    });
-  } else {
-    await chrome.storage.local.set({
-      [applicationId]: [{ url, title, color }],
-    });
-
-    await chrome.storage.local.set({
-      applicationIds: applicationIds
-        ? [...applicationIds, applicationId]
-        : [applicationId],
-    });
-  }
-
-  window.alert(
-    isIdExist
-      ? `更新しました:${applicationId}`
-      : `新規で登録しました:${applicationId}`
+  window.confirm(
+    `${isUrlExist ? "更新しました" : "新規で登録しました"}:${url}`
   );
+
+  window.location.reload();
 };
 
 /**
@@ -75,27 +45,45 @@ const saveConfigs = async (e) => {
 const deleteConfigs = async (e) => {
   e.preventDefault();
 
-  const deleteAppId = document.getElementById("applicationId").value;
+  const deleteUrl = document.getElementById("url").value;
 
-  const applicationIds = (await chrome.storage.local.get("applicationIds"))
-    .applicationIds;
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
 
-  const isApplicationIdExist = applicationIds?.some((id) => id === deleteAppId);
+  const isUrlExist = urlList?.some((_url) => _url === deleteUrl);
 
-  if (!isApplicationIdExist) {
-    window.alert("指定したアプリケーションIDが存在しません");
+  if (!isUrlExist) {
+    window.alert("指定したURLは存在しません");
   }
 
-  await chrome.storage.local.remove(deleteAppId);
+  await chrome.storage.local.remove(deleteUrl);
 
-  if (applicationIds) {
+  if (urlList) {
     await chrome.storage.local.set({
-      applicationIds: applicationIds.filter((id) => id !== deleteAppId),
+      applicationIds: urlList.filter((_url) => _url !== deleteUrl),
     });
   }
 
-  window.alert("削除しました");
+  window.confirm("削除しました");
+
+  window.location.reload();
+};
+
+const appendUrlList = async () => {
+  const appendTargetElement = document.getElementById("lists");
+
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
+
+  if (!urlList) {
+    return;
+  }
+
+  urlList.forEach((url) => {
+    const li = document.createElement("li");
+    li.textContent = url;
+    appendTargetElement.appendChild(li);
+  });
 };
 
 addButton.addEventListener("click", saveConfigs);
 deleteButton.addEventListener("click", deleteConfigs);
+window.onload = appendUrlList();

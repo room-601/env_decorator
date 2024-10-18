@@ -1,21 +1,22 @@
 chrome.tabs.onUpdated.addListener(async (_, changeInfo, tab) => {
-  const applicationIds = (await chrome.storage.local.get("applicationIds"))
-    .applicationIds;
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
 
-  // 何も登録されていない場合
-  if (!applicationIds) {
+  // urlなし;
+  if (!urlList) {
     return;
   }
 
   const lists = await Promise.all(
-    applicationIds.map(async (id) => {
-      return (await chrome.storage.local.get(id))[id];
+    urlList.map(async (url) => {
+      const data = (await chrome.storage.local.get(url))[url];
+
+      if (!data) {
+        return;
+      }
+
+      return { url, ...data };
     })
   );
-
-  if (!lists || lists.length === 0) {
-    return;
-  }
 
   const flattenList = lists.filter((v) => !!v).flat();
 

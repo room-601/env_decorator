@@ -1,21 +1,26 @@
 const addBar = async () => {
   const currentUrl = window.location.href;
 
-  const applicationIds = (await chrome.storage.local.get("applicationIds"))
-    .applicationIds;
+  const urlList = (await chrome.storage.local.get("urlList")).urlList;
 
-  // 指定キーなし
-  if (!applicationIds) {
+  // urlなし;
+  if (!urlList) {
     return;
   }
 
   const lists = await Promise.all(
-    applicationIds.map(async (id) => {
-      return (await chrome.storage.local.get(id))[id];
+    urlList.map(async (url) => {
+      const data = (await chrome.storage.local.get(url))[url];
+
+      if (!data) {
+        return;
+      }
+
+      return { url, ...data };
     })
   );
 
-  const flattenList = lists.flat();
+  const flattenList = lists.filter((v) => !!v).flat();
 
   // リストなし
   if (!flattenList) {
